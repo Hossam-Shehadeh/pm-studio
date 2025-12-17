@@ -14,11 +14,14 @@ interface BudgetViewProps {
 }
 
 export function BudgetView({ project, onUpdate }: BudgetViewProps) {
-  // Calculate comprehensive budget breakdown
+  // Calculate comprehensive budget breakdown - consistent with Project Summary
   const laborCost = project.budget
-  const contingency = Math.round(laborCost * 0.15)
+  const contingency = Math.round(laborCost * 0.15) // 15% contingency
   const overhead = Math.round(laborCost * 0.10) // 10% overhead
   const totalBudget = laborCost + contingency + overhead
+  
+  // Calculate actual task costs to verify consistency
+  const actualTaskCosts = project.tasks.reduce((sum, task) => sum + task.cost, 0)
 
   // Calculate cost by WBS level
   const costByLevel = project.tasks.reduce((acc, task) => {
@@ -61,8 +64,30 @@ export function BudgetView({ project, onUpdate }: BudgetViewProps) {
         .reduce((sum, t) => sum + t.cost, 0),
     }))
 
+  // Check if actual task costs match project budget (allow small rounding differences)
+  const costDifference = Math.abs(laborCost - actualTaskCosts)
+  const hasCostMismatch = costDifference > 1 // More than $1 difference
+
   return (
     <div className="space-y-6">
+      {/* Cost Validation Notice */}
+      {hasCostMismatch && (
+        <Card className="border-l-4 border-l-yellow-500 bg-yellow-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-yellow-800">Budget Calculation Notice</p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Project budget (${laborCost.toLocaleString()}) differs from sum of task costs (${actualTaskCosts.toLocaleString()}) by ${costDifference.toLocaleString()}.
+                  This may be due to resource rate changes or task updates.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="gradient-card border-l-4 border-l-chart-3 shadow-lg hover:shadow-xl transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -17,11 +17,12 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronRight, ChevronDown, Plus, Sparkles, Edit2, Trash2, Check, X, Link2 } from "lucide-react"
-import type { Project, Task } from "@/lib/types"
+import type { Project, Task, DependencyType } from "@/lib/types"
 import { useState } from "react"
 import { updateProject } from "@/lib/storage"
 import { RESOURCE_RATES } from "@/lib/constants"
 import { PredecessorEditor } from "@/components/project/predecessor-editor"
+import { NetworkDiagramService } from "@/lib/network-diagram-service"
 
 interface WBSViewProps {
   project: Project
@@ -45,6 +46,9 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
     duration: 1,
     parentId: "",
     resource: "",
+    predecessorId: "",
+    dependencyType: "finishToStart" as DependencyType,
+    lagDays: 0,
   })
 
   const toggleTask = (taskId: string) => {
@@ -110,9 +114,39 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
     const level = parent ? parent.level + 1 : 1
     const wbsCode = generateWBSCode(newTask.parentId || null)
 
-    // Calculate dates
+    // Calculate dates based on predecessor if provided
     let startDate = new Date(project.startDate)
-    if (parent) {
+    
+    if (newTask.predecessorId) {
+      const predecessor = project.tasks.find(t => t.id === newTask.predecessorId)
+      if (predecessor) {
+        // Calculate start date based on dependency type
+        const predStart = new Date(predecessor.startDate)
+        const predEnd = new Date(predecessor.endDate)
+        const lagDays = newTask.lagDays || 0
+        
+        switch (newTask.dependencyType) {
+          case "finishToStart":
+            startDate = new Date(predEnd)
+            startDate.setDate(startDate.getDate() + lagDays)
+            break
+          case "startToStart":
+            startDate = new Date(predStart)
+            startDate.setDate(startDate.getDate() + lagDays)
+            break
+          case "finishToFinish":
+            // Start date will be calculated so finish aligns
+            startDate = new Date(predEnd)
+            startDate.setDate(startDate.getDate() - newTask.duration + lagDays)
+            break
+          case "startToFinish":
+            // Start date will be calculated so finish aligns with start
+            startDate = new Date(predStart)
+            startDate.setDate(startDate.getDate() - newTask.duration + lagDays)
+            break
+        }
+      }
+    } else if (parent) {
       startDate = new Date(parent.startDate)
     } else {
       // Find the latest end date of root tasks
@@ -135,33 +169,115 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
       : 100
     const cost = newTask.duration * 8 * rate
 
-    const task: Task = {
-      id: crypto.randomUUID(),
-      name: newTask.name,
-      wbsCode,
-      level,
-      parentId: newTask.parentId || null,
-      duration: newTask.duration,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      resource: newTask.resource || null,
-      cost,
-      isCriticalPath: false,
-      dependencies: [],
-    }
-
-    const updatedTasks = [...project.tasks, task]
-    updateProject({ ...project, tasks: updatedTasks })
+    // Handle predecessor dependency
+    let predecessors: string[] = []
+    let dependencies = [...(project.dependencies || [])]
     
-    // Expand parent if task has one
-    if (parent) {
-      setExpandedTasks(new Set([...expandedTasks, parent.id]))
-    }
+    if (newTask.predecessorId) {
+      predecessors = [newTask.predecessorId]
+      
+      // Create dependency relationship
+      const newDependency = {
+        id: `${newTask.predecessorId}-${crypto.randomUUID()}-${Date.now()}`,
+        fromTaskId: newTask.predecessorId,
+        toTaskId: crypto.randomUUID(), // Will be set after task creation
+        type: newTask.dependencyType,
+        lagDays: newTask.lagDays || 0,
+      }
+      
+      const taskId = crypto.randomUUID()
+      newDependency.toTaskId = taskId
+      
+      // Update predecessor task's successors
+      const updatedTasksWithPredecessor = project.tasks.map(t => 
+        t.id === newTask.predecessorId
+          ? { ...t, successors: [...(t.successors || []), taskId] }
+          : t
+      )
+      
+      const task: Task = {
+        id: taskId,
+        name: newTask.name,
+        wbsCode,
+        level,
+        parentId: newTask.parentId || null,
+        duration: newTask.duration,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        resource: newTask.resource || null,
+        cost,
+        isCriticalPath: false,
+        dependencies: predecessors,
+        predecessors: predecessors,
+        successors: [],
+      }
 
-    // Reset form
-    setNewTask({ name: "", duration: 1, parentId: "", resource: "" })
-    setIsAddDialogOpen(false)
-    onUpdate?.()
+      const updatedTasks = [...updatedTasksWithPredecessor, task]
+      dependencies.push(newDependency)
+      
+      const updatedProject = {
+        ...project,
+        tasks: updatedTasks,
+        dependencies,
+      }
+
+      // Recalculate critical path
+      const networkResult = NetworkDiagramService.calculateCriticalPath(updatedProject)
+      if (networkResult.isValid) {
+        const finalProject = NetworkDiagramService.updateTaskDates(updatedProject)
+        updateProject(finalProject)
+        
+        // Expand parent if task has one
+        if (parent) {
+          setExpandedTasks(new Set([...expandedTasks, parent.id]))
+        }
+
+        // Reset form
+        setNewTask({ name: "", duration: 1, parentId: "", resource: "", predecessorId: "", dependencyType: "finishToStart", lagDays: 0 })
+        setIsAddDialogOpen(false)
+        onUpdate?.()
+      } else {
+        // Still save even if critical path calculation has issues
+        updateProject(updatedProject)
+        if (parent) {
+          setExpandedTasks(new Set([...expandedTasks, parent.id]))
+        }
+        setNewTask({ name: "", duration: 1, parentId: "", resource: "", predecessorId: "", dependencyType: "finishToStart", lagDays: 0 })
+        setIsAddDialogOpen(false)
+        onUpdate?.()
+      }
+    } else {
+      // No predecessor - simple task creation
+      const task: Task = {
+        id: crypto.randomUUID(),
+        name: newTask.name,
+        wbsCode,
+        level,
+        parentId: newTask.parentId || null,
+        duration: newTask.duration,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        resource: newTask.resource || null,
+        cost,
+        isCriticalPath: false,
+        dependencies: [],
+        predecessors: [],
+        successors: [],
+      }
+
+      const updatedTasks = [...project.tasks, task]
+      updateProject({ ...project, tasks: updatedTasks })
+      
+      // Expand parent if task has one
+      if (parent) {
+        setExpandedTasks(new Set([...expandedTasks, parent.id]))
+      }
+
+      // Reset form
+      setNewTask({ name: "", duration: 1, parentId: "", resource: "", predecessorId: "", dependencyType: "finishToStart", lagDays: 0 })
+      setIsAddDialogOpen(false)
+      onUpdate?.()
+    }
   }
 
   const renderTask = (task: Task) => {
@@ -221,7 +337,31 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
             <>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-foreground">{task.name}</div>
-                <div className="text-sm text-muted-foreground">{task.wbsCode}</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                  <span>{task.wbsCode}</span>
+                  {task.predecessors && task.predecessors.length > 0 && (
+                    <span className="flex items-center gap-1 text-xs">
+                      <Link2 className="size-3" />
+                      <span className="font-medium">Predecessors:</span>
+                      {task.predecessors.map((predId, idx) => {
+                        const predTask = project.tasks.find(t => t.id === predId)
+                        const dep = (project.dependencies || []).find(d => d.fromTaskId === predId && d.toTaskId === task.id)
+                        const depType = dep?.type || "finishToStart"
+                        const depTypeLabel = depType === "finishToStart" ? "FS" : 
+                                            depType === "startToStart" ? "SS" :
+                                            depType === "finishToFinish" ? "FF" : "SF"
+                        return (
+                          <Badge key={predId} variant="outline" className="text-xs px-1.5 py-0">
+                            {predTask?.wbsCode || predId.slice(0, 4)} ({depTypeLabel})
+                            {dep?.lagDays && dep.lagDays !== 0 && (
+                              <span className="ml-1">{dep.lagDays > 0 ? `+${dep.lagDays}` : dep.lagDays}d</span>
+                            )}
+                          </Badge>
+                        )
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
               <Badge
                 variant="outline"
@@ -384,6 +524,91 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
                         </SelectContent>
                       </Select>
                     </div>
+                    
+                    <div className="pt-4 border-t border-border">
+                      <Label className="text-sm font-semibold mb-3 block">Predecessor & Dependency (Optional)</Label>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="task-predecessor" className="text-xs">Predecessor Task</Label>
+                          <Select 
+                            value={newTask.predecessorId || "none"} 
+                            onValueChange={(value) => setNewTask({ ...newTask, predecessorId: value === "none" ? "" : value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select predecessor (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              {project.tasks
+                                .filter((t) => t.id !== newTask.parentId) // Exclude parent task
+                                .map((task) => (
+                                  <SelectItem key={task.id} value={task.id}>
+                                    {task.wbsCode} - {task.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {newTask.predecessorId && (
+                          <>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <Label htmlFor="dependency-type" className="text-xs">Dependency Type</Label>
+                                <Select 
+                                  value={newTask.dependencyType} 
+                                  onValueChange={(value) => setNewTask({ ...newTask, dependencyType: value as DependencyType })}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="finishToStart">
+                                      <div>
+                                        <div className="font-semibold">FS - Finish-to-Start</div>
+                                        <div className="text-xs text-muted-foreground">Successor starts after predecessor finishes</div>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="startToStart">
+                                      <div>
+                                        <div className="font-semibold">SS - Start-to-Start</div>
+                                        <div className="text-xs text-muted-foreground">Successor starts when predecessor starts</div>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="finishToFinish">
+                                      <div>
+                                        <div className="font-semibold">FF - Finish-to-Finish</div>
+                                        <div className="text-xs text-muted-foreground">Successor finishes when predecessor finishes</div>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="startToFinish">
+                                      <div>
+                                        <div className="font-semibold">SF - Start-to-Finish</div>
+                                        <div className="text-xs text-muted-foreground">Successor finishes when predecessor starts</div>
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="lag-days" className="text-xs">Lag/Lead (days)</Label>
+                                <Input
+                                  id="lag-days"
+                                  type="number"
+                                  value={newTask.lagDays}
+                                  onChange={(e) => setNewTask({ ...newTask, lagDays: Number.parseInt(e.target.value) || 0 })}
+                                  placeholder="0"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Positive = lag, Negative = lead
+                                </p>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-end gap-3">
                     <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -406,6 +631,7 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
       <Card className="gradient-card border-l-4 border-l-primary shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl">Project Summary</CardTitle>
+          <CardDescription className="text-base">Overview of project metrics and budget</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -414,23 +640,55 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
               <div className="text-3xl font-black bg-gradient-to-r from-chart-1 to-chart-5 bg-clip-text text-transparent">
                 {project.tasks.length}
               </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {project.tasks.filter(t => t.level === 1).length} phases
+              </div>
             </div>
             <div className="text-center p-4 rounded-xl bg-gradient-to-br from-chart-2/10 to-chart-2/5 border border-chart-2/20">
               <div className="text-sm font-medium text-muted-foreground mb-1">Duration</div>
               <div className="text-3xl font-black bg-gradient-to-r from-chart-2 to-info bg-clip-text text-transparent">
                 {project.duration} days
               </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {Math.round(project.duration / 7)} weeks
+              </div>
             </div>
             <div className="text-center p-4 rounded-xl bg-gradient-to-br from-chart-3/10 to-chart-3/5 border border-chart-3/20">
-              <div className="text-sm font-medium text-muted-foreground mb-1">Budget</div>
+              <div className="text-sm font-medium text-muted-foreground mb-1">Labor Cost</div>
               <div className="text-3xl font-black bg-gradient-to-r from-chart-3 to-warning bg-clip-text text-transparent">
                 ${project.budget.toLocaleString()}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                ${Math.round(project.budget / project.duration).toLocaleString()}/day
               </div>
             </div>
             <div className="text-center p-4 rounded-xl bg-gradient-to-br from-chart-4/10 to-chart-4/5 border border-chart-4/20">
               <div className="text-sm font-medium text-muted-foreground mb-1">Resources</div>
               <div className="text-3xl font-black bg-gradient-to-r from-chart-4 to-success bg-clip-text text-transparent">
                 {project.resources.length}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {new Set(project.tasks.filter(t => t.resource).map(t => t.resource)).size} assigned
+              </div>
+            </div>
+          </div>
+          
+          {/* Budget Breakdown */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-chart-3/10 to-chart-3/5 border border-chart-3/20">
+                <span className="font-semibold text-sm">Labor Cost</span>
+                <span className="font-bold text-lg">${project.budget.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-chart-5/10 to-chart-5/5 border border-chart-5/20">
+                <span className="font-semibold text-sm">Contingency (15%)</span>
+                <span className="font-bold text-lg">${Math.round(project.budget * 0.15).toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/30">
+                <span className="font-bold text-sm">Total Budget</span>
+                <span className="font-black text-xl bg-gradient-to-r from-primary to-chart-1 bg-clip-text text-transparent">
+                  ${(project.budget + Math.round(project.budget * 0.15) + Math.round(project.budget * 0.10)).toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
