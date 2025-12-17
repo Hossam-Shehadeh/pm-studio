@@ -11,6 +11,7 @@ interface MSProjectResourceUsageViewProps {
 export function MSProjectResourceUsageView({ project, showOverallocation = false }: MSProjectResourceUsageViewProps) {
   const startDate = new Date(project.startDate)
   const daysToShow = Math.max(project.duration, 30)
+  const dayWidth = 60 // Fixed width for resource usage view
 
   // Group tasks by resource and date
   const resourceUsage = useMemo(() => {
@@ -69,20 +70,69 @@ export function MSProjectResourceUsageView({ project, showOverallocation = false
         <div className="flex-1 overflow-x-auto">
           {/* Timeline Header */}
           <div className="sticky top-0 bg-gray-100 border-b border-gray-300 z-10">
-            <div className="flex" style={{ width: `${daysToShow * 60}px` }}>
+            {/* Month Header Row */}
+            <div className="flex border-b border-gray-300" style={{ width: `${daysToShow * dayWidth}px` }}>
+              {(() => {
+                const monthRanges: Array<{ start: number; end: number; month: string; year: number }> = []
+                let currentMonth = -1
+                
+                for (let i = 0; i < daysToShow; i++) {
+                  const date = new Date(startDate)
+                  date.setDate(date.getDate() + i)
+                  const month = date.getMonth()
+                  
+                  if (month !== currentMonth) {
+                    if (currentMonth !== -1) {
+                      monthRanges[monthRanges.length - 1].end = i - 1
+                    }
+                    monthRanges.push({
+                      start: i,
+                      end: daysToShow - 1,
+                      month: date.toLocaleDateString('en-US', { month: 'short' }),
+                      year: date.getFullYear()
+                    })
+                    currentMonth = month
+                  }
+                }
+                
+                return monthRanges.map((range) => {
+                  const width = (range.end - range.start + 1) * dayWidth
+                  return (
+                    <div
+                      key={`month-${range.start}`}
+                      className="border-r border-gray-400 bg-gray-200 text-xs font-semibold text-center py-1 px-1"
+                      style={{ width: `${width}px`, minWidth: `${width}px` }}
+                    >
+                      {range.month} {range.year}
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+            
+            {/* Day Header Row */}
+            <div className="flex" style={{ width: `${daysToShow * dayWidth}px` }}>
               {Array.from({ length: daysToShow }, (_, i) => {
                 const date = new Date(startDate)
                 date.setDate(date.getDate() + i)
                 const isWeekend = date.getDay() === 0 || date.getDay() === 6
+                const isFirstDayOfMonth = date.getDate() === 1
+                const prevDate = i > 0 ? (() => {
+                  const d = new Date(startDate)
+                  d.setDate(d.getDate() + i - 1)
+                  return d
+                })() : null
+                const monthChanged = prevDate && prevDate.getMonth() !== date.getMonth()
+                
                 return (
                   <div
                     key={i}
-                    className={`border-r border-gray-300 text-xs text-center py-1 ${isWeekend ? "bg-gray-50" : ""
-                      }`}
-                    style={{ width: "60px", minWidth: "60px" }}
+                    className={`border-r border-gray-300 text-xs text-center py-1 px-0.5 ${isWeekend ? "bg-gray-50" : ""
+                      } ${monthChanged ? "border-l-2 border-l-blue-400" : ""}`}
+                    style={{ width: `${dayWidth}px`, minWidth: `${dayWidth}px` }}
                   >
-                    <div>{date.getDate()}</div>
-                    <div className="text-gray-500">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                    <div className={`${isFirstDayOfMonth ? "font-semibold" : ""} whitespace-nowrap`}>{date.getDate()}</div>
+                    <div className="text-gray-500 text-[10px] whitespace-nowrap">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
                   </div>
                 )
               })}
@@ -94,7 +144,7 @@ export function MSProjectResourceUsageView({ project, showOverallocation = false
             {resources.map((resource) => {
               const days = resourceUsage.get(resource) || new Map()
               return (
-                <div key={resource} className="flex" style={{ width: `${daysToShow * 60}px` }}>
+                <div key={resource} className="flex" style={{ width: `${daysToShow * dayWidth}px` }}>
                   {Array.from({ length: daysToShow }, (_, i) => {
                     const hours = days.get(i) || 0
                     const isOverallocated = hours > 8
@@ -109,7 +159,7 @@ export function MSProjectResourceUsageView({ project, showOverallocation = false
                                 : "bg-blue-50"
                             : ""
                           }`}
-                        style={{ width: "60px", minWidth: "60px" }}
+                        style={{ width: `${dayWidth}px`, minWidth: `${dayWidth}px` }}
                       >
                         {hours > 0 && (
                           <div className={`font-semibold ${isOverallocated ? "text-red-600" : "text-blue-600"}`}>
