@@ -14,7 +14,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Home } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 interface MSProjectViewProps {
   projects: Project[]
@@ -86,6 +88,13 @@ export function MSProjectView({ projects, selectedProject, onProjectChange }: MS
       {/* MS Project Title Bar */}
       <div className="h-8 bg-[#0078d4] flex items-center justify-between px-4 text-white text-sm font-medium">
         <div className="flex items-center gap-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-white hover:bg-white/10 gap-1">
+              <Home className="w-3 h-3" />
+              Home
+            </Button>
+          </Link>
+          <div className="w-px h-4 bg-white/30" />
           <span>Microsoft Project</span>
           <div className="w-px h-4 bg-white/30" />
           <DropdownMenu>

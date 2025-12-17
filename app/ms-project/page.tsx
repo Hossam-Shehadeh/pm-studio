@@ -7,7 +7,7 @@ import { getProjects } from "@/lib/storage"
 import type { Project } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FolderKanban } from "lucide-react"
+import { FolderKanban, Home } from "lucide-react"
 
 export default function MSProjectPage() {
   const router = useRouter()
@@ -55,9 +55,17 @@ export default function MSProjectPage() {
   return (
     <div className="min-h-screen bg-[#f3f3f3] p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Microsoft Project</h1>
-          <p className="text-gray-600">Select a project to view in Microsoft Project format</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Microsoft Project</h1>
+            <p className="text-gray-600">Select a project to view in Microsoft Project format</p>
+          </div>
+          <Link href="/">
+            <Button variant="outline" className="gap-2">
+              <Home className="size-4" />
+              Back to Home
+            </Button>
+          </Link>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
