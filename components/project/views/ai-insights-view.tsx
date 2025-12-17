@@ -89,10 +89,17 @@ export function AIInsightsView({ project }: AIInsightsViewProps) {
               <CardTitle>AI-Powered Insights</CardTitle>
               <CardDescription>Smart recommendations to optimize your project</CardDescription>
             </div>
-            <Button className="gap-2">
+            {/* Generate New Insights button - commented out per user request */}
+            {/* <Button 
+              className="gap-2"
+              onClick={() => {
+                // Generate new insights
+                alert("Generating new AI insights... This feature will analyze your project and provide recommendations.")
+              }}
+            >
               <Sparkles className="size-4" />
               Generate New Insights
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
       </Card>
@@ -117,14 +124,15 @@ export function AIInsightsView({ project }: AIInsightsViewProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
+                {/* Apply Suggestion and Dismiss buttons - commented out per user request */}
+                {/* <div className="flex gap-2">
                   <Button size="sm" variant="default">
                     Apply Suggestion
                   </Button>
                   <Button size="sm" variant="outline">
                     Dismiss
                   </Button>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           )

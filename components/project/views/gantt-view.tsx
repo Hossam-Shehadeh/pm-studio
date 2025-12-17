@@ -148,6 +148,51 @@ export function GanttView({ project }: GanttViewProps) {
         </Card>
       </div>
 
+      {/* Critical Path Explanation */}
+      <Card className="gradient-card border-l-4 border-l-destructive shadow-lg mb-6">
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <span className="size-2 rounded-full bg-destructive animate-pulse" />
+            What is the Critical Path?
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            The <strong className="text-destructive">Critical Path</strong> is the longest sequence of dependent tasks in your project that directly determines the project finish date.
+          </p>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+            <p className="text-sm font-semibold text-destructive mb-2">
+              🔴 If any task on the critical path is delayed → the entire project is delayed.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Key Concepts:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                <li><strong>Critical Task:</strong> A task with zero slack (float)</li>
+                <li><strong>Slack / Float:</strong> How much a task can be delayed without affecting the project end date</li>
+                <li><strong>Critical Path:</strong> Tasks with 0 slack</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Example:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>Design (5 days)</li>
+                <li>Development (10 days) → depends on Design</li>
+                <li>Testing (4 days) → depends on Development</li>
+                <li className="font-semibold text-foreground mt-2">➡️ Total = 19 days (Critical Path)</li>
+                <li className="text-xs text-muted-foreground">If "Development" is delayed by 2 days → project finishes in 21 days</li>
+              </ul>
+            </div>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-3 mt-4">
+            <p className="text-xs text-muted-foreground">
+              <strong>Note:</strong> Microsoft Project automatically calculates the critical path based on task durations, dependencies (Finish-to-Start, etc.), start date, calendars, and constraints. You must have task links (dependencies) for a real critical path.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="gradient-card border-l-4 border-l-chart-2 shadow-lg">
         <CardHeader>
           <div className="flex items-center justify-between">

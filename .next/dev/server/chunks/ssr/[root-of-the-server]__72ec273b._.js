@@ -3128,6 +3128,430 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$ai$2d$generator$2e$ts
 ;
 const PLANNER_TEMPLATES = [
     {
+        id: "nova-ai-project",
+        name: "Nova AI (Software Delivery)",
+        description: "Full software project template matching the Nova AI schedule with milestones, WBS, durations, and resources—ready to import and open with Microsoft Project (XML).",
+        planType: "software",
+        projectType: "custom",
+        icon: "🤖",
+        color: "chart-5",
+        phases: [
+            {
+                name: "1. Initiation & Planning",
+                description: "Project charter, stakeholders, scope, and schedule/budget setup",
+                tasks: [
+                    {
+                        name: "Project Charter",
+                        description: "Create and approve charter",
+                        duration: 2,
+                        resource: "Project Manager",
+                        priority: "high"
+                    },
+                    {
+                        name: "Stakeholder Analysis",
+                        description: "Identify and analyze stakeholders",
+                        duration: 1,
+                        resource: "Project Manager",
+                        priority: "high"
+                    },
+                    {
+                        name: "Scope Definition",
+                        description: "Define high-level scope and deliverables",
+                        duration: 2,
+                        resource: "PM, Business Analyst",
+                        priority: "high"
+                    },
+                    {
+                        name: "MS Project Schedule & Budget Setup",
+                        description: "Build initial schedule and budget",
+                        duration: 2,
+                        resource: "Project Manager",
+                        priority: "high"
+                    },
+                    {
+                        name: "Communication Plan",
+                        description: "Cadence, channels, and RACI",
+                        duration: 1,
+                        resource: "Project Manager",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Risk & Issue Register",
+                        description: "Identify top risks and mitigations",
+                        duration: 1,
+                        resource: "Project Manager",
+                        priority: "medium"
+                    }
+                ]
+            },
+            {
+                name: "2. Requirements & Analysis",
+                description: "Gather, document, and baseline requirements",
+                tasks: [
+                    {
+                        name: "Functional Requirements (Sales, AI, CRM)",
+                        description: "Capture functional needs",
+                        duration: 4,
+                        resource: "Business Analyst",
+                        priority: "high"
+                    },
+                    {
+                        name: "Non-Functional Requirements",
+                        description: "Document security/performance needs",
+                        duration: 3,
+                        resource: "Business Analyst",
+                        priority: "high"
+                    },
+                    {
+                        name: "AI & Data Requirements",
+                        description: "Define AI/data requirements",
+                        duration: 3,
+                        resource: "AI Engineer, BA",
+                        priority: "high"
+                    },
+                    {
+                        name: "Requirements Documentation",
+                        description: "Compile full requirements spec",
+                        duration: 3,
+                        resource: "Business Analyst",
+                        priority: "high"
+                    },
+                    {
+                        name: "Acceptance Criteria & Success Metrics",
+                        description: "Define measurable acceptance criteria",
+                        duration: 2,
+                        resource: "Business Analyst",
+                        priority: "high"
+                    },
+                    {
+                        name: "Requirements Approval & Baseline",
+                        description: "Review and sign off",
+                        duration: 2,
+                        resource: "PM, Stakeholders",
+                        priority: "high"
+                    },
+                    {
+                        name: "Data Governance & Privacy",
+                        description: "Document data handling and privacy",
+                        duration: 2,
+                        resource: "AI Engineer, BA",
+                        priority: "medium"
+                    }
+                ]
+            },
+            {
+                name: "3. UX/UI & System Design",
+                description: "Design journeys, UI, and system architecture",
+                tasks: [
+                    {
+                        name: "UX Research & User Journeys",
+                        description: "Research and map user journeys",
+                        duration: 3,
+                        resource: "UX Designer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Wireframes (Web Dashboard)",
+                        description: "Produce wireframes",
+                        duration: 4,
+                        resource: "UX Designer",
+                        priority: "high"
+                    },
+                    {
+                        name: "UI Design (Figma)",
+                        description: "Design UI components/screens",
+                        duration: 5,
+                        resource: "UX Designer",
+                        priority: "high"
+                    },
+                    {
+                        name: "System Architecture Design",
+                        description: "Define architecture and infra",
+                        duration: 4,
+                        resource: "Backend Lead, DevOps",
+                        priority: "high"
+                    },
+                    {
+                        name: "Database & API Design",
+                        description: "Schema and API contracts",
+                        duration: 4,
+                        resource: "Backend Lead",
+                        priority: "high"
+                    },
+                    {
+                        name: "Design System & Components",
+                        description: "Establish reusable design system",
+                        duration: 3,
+                        resource: "UX Designer",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Prototyping & Usability Checks",
+                        description: "Clickable prototypes and quick feedback",
+                        duration: 2,
+                        resource: "UX Designer",
+                        priority: "medium"
+                    }
+                ]
+            },
+            {
+                name: "4. Core Development",
+                description: "Backend, AI/ML, frontend, and DevOps core build",
+                tasks: [
+                    {
+                        name: "Auth & User Management",
+                        description: "Implement authentication/authorization",
+                        duration: 6,
+                        resource: "Backend Lead",
+                        priority: "high"
+                    },
+                    {
+                        name: "CRM Integration",
+                        description: "Integrate CRM systems",
+                        duration: 8,
+                        resource: "Backend Lead",
+                        priority: "high"
+                    },
+                    {
+                        name: "Campaign Engine",
+                        description: "Build campaign workflows",
+                        duration: 10,
+                        resource: "Backend Lead",
+                        priority: "high"
+                    },
+                    {
+                        name: "Intent Signals Engine",
+                        description: "Signals/intent processing",
+                        duration: 8,
+                        resource: "Backend Lead",
+                        priority: "high"
+                    },
+                    {
+                        name: "LLM Prompt Engineering",
+                        description: "Design prompts for LLM",
+                        duration: 6,
+                        resource: "AI Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Autonomous Agent Logic",
+                        description: "Implement agent behaviors",
+                        duration: 10,
+                        resource: "AI Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Email & LinkedIn NLP",
+                        description: "NLP for comms channels",
+                        duration: 8,
+                        resource: "AI Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Dashboard UI",
+                        description: "Build dashboard UI",
+                        duration: 8,
+                        resource: "Frontend Developer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Campaign Builder UI",
+                        description: "Interactive campaign builder",
+                        duration: 10,
+                        resource: "Frontend Developer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Analytics & Reports UI",
+                        description: "Charts and reporting UI",
+                        duration: 8,
+                        resource: "Frontend Developer",
+                        priority: "high"
+                    },
+                    {
+                        name: "CI/CD Pipeline",
+                        description: "Set up CI/CD",
+                        duration: 5,
+                        resource: "DevOps Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Cloud Infrastructure",
+                        description: "Provision and configure cloud",
+                        duration: 6,
+                        resource: "DevOps Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "API Gateway & Security",
+                        description: "Gateway, authz, rate limiting",
+                        duration: 4,
+                        resource: "Backend Lead",
+                        priority: "high"
+                    },
+                    {
+                        name: "Observability (Logs/Metrics/Tracing)",
+                        description: "Implement monitoring and alerts",
+                        duration: 4,
+                        resource: "DevOps Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "QA Automation Harness",
+                        description: "Set up automated test harness",
+                        duration: 5,
+                        resource: "QA Engineer",
+                        priority: "high"
+                    }
+                ]
+            },
+            {
+                name: "5. Advanced / Bonus Features",
+                description: "Voice AI, memory, visitor tracking, and co-pilot",
+                tasks: [
+                    {
+                        name: "Voice AI Integration",
+                        description: "Voice interface integration",
+                        duration: 6,
+                        resource: "AI Engineer",
+                        priority: "medium"
+                    },
+                    {
+                        name: "AI Memory & Learning",
+                        description: "Persistent memory features",
+                        duration: 6,
+                        resource: "AI Engineer",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Website Visitor Tracking",
+                        description: "Implement visitor tracking",
+                        duration: 5,
+                        resource: "Backend Lead",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Human Co-Pilot Mode",
+                        description: "Human-in-the-loop UX",
+                        duration: 5,
+                        resource: "Frontend Developer",
+                        priority: "medium"
+                    },
+                    {
+                        name: "A/B & Feature Flags",
+                        description: "Experimentation and rollouts",
+                        duration: 4,
+                        resource: "Frontend Developer",
+                        priority: "medium"
+                    }
+                ]
+            },
+            {
+                name: "6. Testing & QA",
+                description: "Unit, integration, security/performance, and UAT",
+                tasks: [
+                    {
+                        name: "Unit Testing",
+                        description: "Write and run unit tests",
+                        duration: 5,
+                        resource: "Dev Team",
+                        priority: "high"
+                    },
+                    {
+                        name: "Integration Testing",
+                        description: "Cross-system integration tests",
+                        duration: 5,
+                        resource: "QA Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Security & Performance Testing",
+                        description: "Security/perf validation",
+                        duration: 3,
+                        resource: "QA, DevOps",
+                        priority: "high"
+                    },
+                    {
+                        name: "User Acceptance Testing",
+                        description: "UAT with stakeholders",
+                        duration: 4,
+                        resource: "QA, Stakeholders",
+                        priority: "high"
+                    },
+                    {
+                        name: "Regression & Automation Suite",
+                        description: "Automated regression coverage",
+                        duration: 4,
+                        resource: "QA Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Penetration Testing",
+                        description: "External or internal pen test",
+                        duration: 3,
+                        resource: "Security Engineer",
+                        priority: "medium"
+                    }
+                ]
+            },
+            {
+                name: "7. Deployment & Closure",
+                description: "Production cutover, monitoring, docs, training",
+                tasks: [
+                    {
+                        name: "Production Deployment",
+                        description: "Go-live to production",
+                        duration: 2,
+                        resource: "DevOps Engineer",
+                        priority: "urgent"
+                    },
+                    {
+                        name: "Monitoring & Logging",
+                        description: "Observability setup",
+                        duration: 2,
+                        resource: "DevOps Engineer",
+                        priority: "high"
+                    },
+                    {
+                        name: "Documentation",
+                        description: "Project and user docs",
+                        duration: 3,
+                        resource: "PM, BA",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Training & Handover",
+                        description: "Train users and handover",
+                        duration: 2,
+                        resource: "Project Manager",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Runbook & Incident Response",
+                        description: "Create runbooks and on-call flows",
+                        duration: 2,
+                        resource: "DevOps Engineer",
+                        priority: "medium"
+                    },
+                    {
+                        name: "Post-Launch Hypercare",
+                        description: "Stabilization and fast triage",
+                        duration: 5,
+                        resource: "Dev Team",
+                        priority: "high"
+                    },
+                    {
+                        name: "Retrospective & Lessons Learned",
+                        description: "Wrap-up and improvements",
+                        duration: 1,
+                        resource: "Project Manager",
+                        priority: "medium"
+                    }
+                ]
+            }
+        ]
+    },
+    {
         id: "marketing-campaign",
         name: "Marketing Campaign",
         description: "Launch a comprehensive marketing campaign with content, social media, and analytics",

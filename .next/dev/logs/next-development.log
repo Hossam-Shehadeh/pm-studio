@@ -1,7 +1,41 @@
-[00:00:00.716] Server  LOG      ✓ Ready in 494ms
-[00:00:17.509] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:11.225] Server  LOG      ✓ Compiled in 138ms
-[00:01:32.735] Server  LOG      ✓ Compiled in 122ms
-[00:02:21.393] Server  LOG      ✓ Compiled in 38ms
-[00:02:49.981] Server  LOG      ✓ Compiled in 38ms
-[00:03:47.664] Server  LOG      ✓ Compiled in 184ms
+[00:00:00.803] Server  LOG      ✓ Ready in 562ms
+[00:00:16.399] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:35.377] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:35.377] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:35.377] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:35.377] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:54.921] Server  LOG      ✓ Compiled in 90ms
+[00:02:56.253] Server  LOG      ✓ Compiled in 36ms
+[00:02:59.582] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:59.582] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:59.582] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:02:59.582] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:04:17.006] Server  LOG      ✓ Compiled in 134ms
+[00:04:17.707] Server  LOG      ✓ Compiled in 95ms
+[00:04:19.233] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:04:19.233] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:04:19.233] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:04:19.233] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:04:49.854] Server  LOG      ✓ Compiled in 71ms
+[00:04:52.893] Server  LOG      ✓ Compiled in 47ms
+[00:05:14.401] Server  LOG      ✓ Compiled in 43ms
+[00:05:14.746] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:05:14.746] Browser WARN    The width(1195) and height(400) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:05:14.746] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.
+[00:05:14.746] Browser WARN    The width(1195) and height(300) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer.

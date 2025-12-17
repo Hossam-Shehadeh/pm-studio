@@ -148,14 +148,24 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             <Badge className={`${getStatusColor(project.status)} text-base px-4 py-1.5 shadow-lg`}>
               {project.status}
             </Badge>
-            <Button
+            {/* AI Insights button - commented out per user request */}
+            {/* <Button
               variant="outline"
               size="sm"
               className="gap-2 border-2 border-primary/30 hover:bg-primary/10 hover:border-primary font-semibold bg-transparent"
+              onClick={() => {
+                const insightsTab = document.querySelector('[value="insights"]') as HTMLElement
+                if (insightsTab) {
+                  insightsTab.click()
+                  setTimeout(() => {
+                    document.querySelector('[value="insights"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }, 100)
+                }
+              }}
             >
               <Sparkles className="size-4 text-primary" />
               AI Insights
-            </Button>
+            </Button> */}
             <Button
               size="sm"
               className="gap-2 gradient-primary shadow-lg shadow-primary/40 hover:shadow-primary/60 transition-all font-semibold"

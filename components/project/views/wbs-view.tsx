@@ -16,11 +16,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChevronRight, ChevronDown, Plus, Sparkles, Edit2, Trash2, Check, X } from "lucide-react"
+import { ChevronRight, ChevronDown, Plus, Sparkles, Edit2, Trash2, Check, X, Link2 } from "lucide-react"
 import type { Project, Task } from "@/lib/types"
 import { useState } from "react"
 import { updateProject } from "@/lib/storage"
 import { RESOURCE_RATES } from "@/lib/constants"
+import { PredecessorEditor } from "@/components/project/predecessor-editor"
 
 interface WBSViewProps {
   project: Project
@@ -38,6 +39,7 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
     cost: 0,
   })
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [selectedTaskForPredecessors, setSelectedTaskForPredecessors] = useState<string | null>(null)
   const [newTask, setNewTask] = useState({
     name: "",
     duration: 1,
@@ -243,7 +245,20 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
                   size="icon"
                   variant="ghost"
                   className="size-8 hover:bg-primary/10 hover:text-primary"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedTaskForPredecessors(task.id)
+                  }}
+                  title="Edit Predecessors"
+                >
+                  <Link2 className="size-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 hover:bg-primary/10 hover:text-primary"
                   onClick={(e) => startEdit(task, e)}
+                  title="Edit Task"
                 >
                   <Edit2 className="size-3.5" />
                 </Button>
@@ -252,6 +267,7 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
                   variant="ghost"
                   className="size-8 hover:bg-destructive/10 hover:text-destructive"
                   onClick={(e) => deleteTask(task.id, e)}
+                  title="Delete Task"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -281,14 +297,20 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button
+              {/* Regenerate button - commented out per user request */}
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="gap-2 border-primary/30 hover:bg-primary/10 bg-transparent"
+                onClick={() => {
+                  // Regenerate WBS using AI generator
+                  // This would typically call an AI service
+                  alert("WBS regeneration feature coming soon! For now, you can manually edit tasks.")
+                }}
               >
                 <Sparkles className="size-4 text-primary" />
                 Regenerate
-              </Button>
+              </Button> */}
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="gap-2 gradient-primary shadow-lg shadow-primary/30">
@@ -414,6 +436,34 @@ export function WBSView({ project, onUpdate }: WBSViewProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Predecessor Editor Dialog */}
+      {selectedTaskForPredecessors && (
+        <Dialog open={!!selectedTaskForPredecessors} onOpenChange={(open) => !open && setSelectedTaskForPredecessors(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Predecessors & Dependencies</DialogTitle>
+              <DialogDescription>
+                Manage task dependencies and set dependency types (FS, SS, FF, SF)
+              </DialogDescription>
+            </DialogHeader>
+            {(() => {
+              const task = project.tasks.find(t => t.id === selectedTaskForPredecessors)
+              if (!task) return null
+              return (
+                <PredecessorEditor
+                  project={project}
+                  task={task}
+                  onUpdate={(updatedProject) => {
+                    updateProject(updatedProject)
+                    onUpdate?.()
+                  }}
+                />
+              )
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

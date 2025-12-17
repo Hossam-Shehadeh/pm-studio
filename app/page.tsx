@@ -7,37 +7,6 @@ import { Footer } from "@/components/footer"
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-primary/10">
-      <header className="border-b border-border/40 backdrop-blur-xl bg-background/80 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="size-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <Sparkles className="size-6 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-chart-1 bg-clip-text text-transparent">
-              AI Project Planner
-            </span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link
-              href="/features"
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              How it Works
-            </Link>
-            <Link href="/dashboard">
-              <Button size="sm" className="gradient-primary shadow-lg shadow-primary/30">
-                Get Started
-              </Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
 
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8">
