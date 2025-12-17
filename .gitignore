@@ -1,0 +1,30 @@
+# Node / Next
+node_modules
+.next
+.vercel
+
+# Env
+.env
+.env.*
+
+# Logs & coverage
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage
+
+# OS / editor
+.DS_Store
+*.swp
+.idea
+.vscode
+
+# Build artifacts
+dist
+out
+
+# Project artifacts not for source control
+*.mpp
+*.pdf
+*.zip
+
