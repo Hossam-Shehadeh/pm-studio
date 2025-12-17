@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -23,6 +23,7 @@ import { TemplateSelector } from "@/components/templates/template-selector"
 
 export function CreateProjectDialog() {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [type, setType] = useState<string>("")
@@ -30,6 +31,10 @@ export function CreateProjectDialog() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleCreate = async () => {
     if (!name) return
@@ -59,6 +64,15 @@ export function CreateProjectDialog() {
     setIsGenerating(false)
     setOpen(false)
     router.push(`/project/${project.id}`)
+  }
+
+  if (!mounted) {
+    return (
+      <Button className="gap-2">
+        <Plus className="size-4" />
+        New Project
+      </Button>
+    )
   }
 
   return (
