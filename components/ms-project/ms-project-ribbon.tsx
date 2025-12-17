@@ -170,6 +170,70 @@ export function MSProjectRibbon({
     setIsNewTaskDialogOpen(true)
   }
 
+  const generateWBSCode = (parentId: string | null = null): string => {
+    if (!parentId) {
+      // Root level task - find highest root level number
+      const rootTasks = project.tasks.filter((t) => t.level === 1)
+      const maxRootNum = rootTasks.reduce((max, t) => {
+        const num = parseInt(t.wbsCode.split('.')[0]) || 0
+        return Math.max(max, num)
+      }, 0)
+      return `${maxRootNum + 1}`
+    }
+
+    const parent = project.tasks.find((t) => t.id === parentId)
+    if (!parent) return "1.1"
+
+    const siblings = project.tasks.filter((t) => t.parentId === parentId)
+    const parentParts = parent.wbsCode.split(".")
+    return `${parentParts.join(".")}.${siblings.length + 1}`
+  }
+
+  // Regenerate all WBS codes based on hierarchy
+  const regenerateWBSCodes = (tasks: Task[]): Task[] => {
+    // Sort tasks by level and order
+    const sortedTasks = [...tasks].sort((a, b) => {
+      if (a.level !== b.level) return a.level - b.level
+      // Same level - maintain order
+      return 0
+    })
+
+    const updatedTasks: Task[] = []
+    const levelCounters = new Map<number, Map<string | null, number>>() // level -> parentId -> counter
+
+    sortedTasks.forEach(task => {
+      const parentId = task.parentId
+      const level = task.level
+
+      if (!levelCounters.has(level)) {
+        levelCounters.set(level, new Map())
+      }
+      const levelMap = levelCounters.get(level)!
+
+      if (!levelMap.has(parentId)) {
+        levelMap.set(parentId, 0)
+      }
+      levelMap.set(parentId, levelMap.get(parentId)! + 1)
+      const counter = levelMap.get(parentId)!
+
+      let wbsCode: string
+      if (parentId) {
+        const parent = updatedTasks.find(t => t.id === parentId)
+        if (parent) {
+          wbsCode = `${parent.wbsCode}.${counter}`
+        } else {
+          wbsCode = `${level}.${counter}`
+        }
+      } else {
+        wbsCode = `${counter}`
+      }
+
+      updatedTasks.push({ ...task, wbsCode })
+    })
+
+    return updatedTasks
+  }
+
   const handleCreateTask = () => {
     if (!newTaskName.trim()) {
       toast({
@@ -184,12 +248,13 @@ export function MSProjectRibbon({
     const endDate = new Date(startDate)
     endDate.setDate(endDate.getDate() + newTaskDuration)
 
+    const wbsCode = generateWBSCode(null)
     const newTask = initializeTask({
       name: newTaskName,
       duration: newTaskDuration,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      wbsCode: `${project.tasks.length + 1}`,
+      wbsCode,
       level: 1,
     }, { ownerId: project.ownerId })
 
@@ -251,21 +316,31 @@ export function MSProjectRibbon({
     }
 
     const newDependency: Dependency = {
-      id: `dep-${linkFromTaskId}-${linkToTaskId}`,
+      id: `dep-${linkFromTaskId}-${linkToTaskId}-${Date.now()}`,
       fromTaskId: linkFromTaskId,
       toTaskId: linkToTaskId,
       type: "finishToStart",
       lagDays: 0,
     }
 
+    // Update both predecessors and successors arrays
+    const updatedTasks = project.tasks.map(t => {
+      if (t.id === linkToTaskId) {
+        const newDeps = [...(t.dependencies || []), linkFromTaskId]
+        const newPredecessors = [...(t.predecessors || []), linkFromTaskId]
+        return { ...t, dependencies: newDeps, predecessors: newPredecessors }
+      }
+      if (t.id === linkFromTaskId) {
+        const newSuccessors = [...(t.successors || []), linkToTaskId]
+        return { ...t, successors: newSuccessors }
+      }
+      return t
+    })
+
     const updatedProject = {
       ...project,
       dependencies: [...(project.dependencies || []), newDependency],
-      tasks: project.tasks.map(t =>
-        t.id === linkToTaskId
-          ? { ...t, dependencies: [...(t.dependencies || []), linkFromTaskId] }
-          : t
-      ),
+      tasks: updatedTasks,
     }
 
     // Recalculate critical path
@@ -305,7 +380,16 @@ export function MSProjectRibbon({
     }
 
     const task = project.tasks.find(t => t.id === selectedTaskId)
-    if (!task || !task.dependencies || task.dependencies.length === 0) {
+    if (!task) {
+      toast({
+        title: "Error",
+        description: "Selected task not found",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!task.dependencies || task.dependencies.length === 0) {
       toast({
         title: "Error",
         description: "Selected task has no dependencies",
@@ -314,14 +398,23 @@ export function MSProjectRibbon({
       return
     }
 
+    // Remove from all related tasks
+    const predecessorIds = task.predecessors || []
+    const updatedTasks = project.tasks.map(t => {
+      if (t.id === selectedTaskId) {
+        return { ...t, dependencies: [], predecessors: [] }
+      }
+      // Remove this task from successors of predecessor tasks
+      if (predecessorIds.includes(t.id)) {
+        return { ...t, successors: (t.successors || []).filter(id => id !== selectedTaskId) }
+      }
+      return t
+    })
+
     const updatedProject = {
       ...project,
       dependencies: project.dependencies?.filter(d => d.toTaskId !== selectedTaskId) || [],
-      tasks: project.tasks.map(t =>
-        t.id === selectedTaskId
-          ? { ...t, dependencies: [] }
-          : t
-      ),
+      tasks: updatedTasks,
     }
 
     // Recalculate critical path
@@ -350,9 +443,25 @@ export function MSProjectRibbon({
       return
     }
 
+    // Remove task and clean up all references
+    const updatedTasks = project.tasks
+      .filter(t => t.id !== selectedTaskId)
+      .map(t => {
+        // Remove deleted task from predecessors and successors
+        const newPredecessors = (t.predecessors || []).filter(id => id !== selectedTaskId)
+        const newSuccessors = (t.successors || []).filter(id => id !== selectedTaskId)
+        const newDependencies = (t.dependencies || []).filter(id => id !== selectedTaskId)
+        return {
+          ...t,
+          predecessors: newPredecessors,
+          successors: newSuccessors,
+          dependencies: newDependencies,
+        }
+      })
+
     const updatedProject = {
       ...project,
-      tasks: project.tasks.filter(t => t.id !== selectedTaskId),
+      tasks: updatedTasks,
       dependencies: project.dependencies?.filter(d => d.fromTaskId !== selectedTaskId && d.toTaskId !== selectedTaskId) || [],
     }
 
@@ -419,8 +528,9 @@ export function MSProjectRibbon({
         : t
     )
 
-    // Update WBS codes
-    const updatedProject = { ...project, tasks: updatedTasks }
+    // Regenerate WBS codes for all tasks
+    const tasksWithUpdatedWBS = regenerateWBSCodes(updatedTasks)
+    const updatedProject = { ...project, tasks: tasksWithUpdatedWBS }
     const finalProject = NetworkDiagramService.updateTaskDates(updatedProject)
     addToHistory(finalProject)
     onProjectChange(finalProject)
@@ -466,7 +576,9 @@ export function MSProjectRibbon({
         : t
     )
 
-    const updatedProject = { ...project, tasks: updatedTasks }
+    // Regenerate WBS codes for all tasks
+    const tasksWithUpdatedWBS = regenerateWBSCodes(updatedTasks)
+    const updatedProject = { ...project, tasks: tasksWithUpdatedWBS }
     const finalProject = NetworkDiagramService.updateTaskDates(updatedProject)
     addToHistory(finalProject)
     onProjectChange(finalProject)
@@ -539,7 +651,7 @@ export function MSProjectRibbon({
 
     const updatedTasks = project.tasks.map(t =>
       t.id === assignTaskId
-        ? { ...t, resource: resource.name }
+        ? { ...t, resource: resource.role }
         : t
     )
 

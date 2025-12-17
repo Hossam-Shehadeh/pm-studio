@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { X, Edit2, Save, Calendar, User, Clock, AlertCircle } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { updateProject } from "@/lib/storage"
 import { NetworkDiagramService } from "@/lib/network-diagram-service"
 
@@ -28,11 +28,28 @@ export function MSProjectTaskDetails({ project, taskId, onClose, onUpdate }: MSP
   const [isEditing, setIsEditing] = useState(false)
   const [editedTask, setEditedTask] = useState<Task>(task)
 
+  // Update editedTask when task changes
+  useEffect(() => {
+    const currentTask = project.tasks.find(t => t.id === taskId)
+    if (currentTask) {
+      setEditedTask(currentTask)
+    }
+  }, [project.tasks, taskId])
+
   const handleSave = () => {
+    // Recalculate end date if duration changed
+    let updatedTask = { ...editedTask }
+    if (editedTask.duration !== task.duration) {
+      const startDate = new Date(editedTask.startDate)
+      const endDate = new Date(startDate)
+      endDate.setDate(endDate.getDate() + editedTask.duration)
+      updatedTask = { ...updatedTask, endDate: endDate.toISOString() }
+    }
+
     const updatedTasks = project.tasks.map(t =>
-      t.id === taskId ? editedTask : t
+      t.id === taskId ? updatedTask : t
     )
-    const updatedProject = { ...project, tasks: updatedTasks }
+    const updatedProject = { ...project, tasks: updatedTasks, updatedAt: new Date().toISOString() }
 
     // Recalculate critical path
     const networkResult = NetworkDiagramService.calculateCriticalPath(updatedProject)
@@ -40,6 +57,10 @@ export function MSProjectTaskDetails({ project, taskId, onClose, onUpdate }: MSP
       const finalProject = NetworkDiagramService.updateTaskDates(updatedProject)
       updateProject(finalProject)
       onUpdate(finalProject)
+    } else {
+      // Still update even if critical path calculation has issues
+      updateProject(updatedProject)
+      onUpdate(updatedProject)
     }
 
     setIsEditing(false)

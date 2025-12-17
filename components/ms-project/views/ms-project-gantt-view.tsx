@@ -62,6 +62,7 @@ export function MSProjectGanttView({
             {project.tasks.map((task) => {
               const isSelected = selectedTaskId === task.id
               const isCritical = criticalTasks.has(task.id)
+              const schedule = scheduleData.get(task.id)
               return (
                 <div
                   key={task.id}
@@ -91,6 +92,9 @@ export function MSProjectGanttView({
                     {task.duration}d • {task.resource || "Unassigned"}
                     {showSlack && schedule && schedule.totalFloat > 0 && (
                       <span className="ml-2 text-blue-600">Float: {schedule.totalFloat}d</span>
+                    )}
+                    {showSlack && schedule && schedule.totalFloat === 0 && (
+                      <span className="ml-2 text-red-600 font-semibold">Critical</span>
                     )}
                   </div>
                 </div>

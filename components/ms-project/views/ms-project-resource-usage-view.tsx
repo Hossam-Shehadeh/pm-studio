@@ -21,16 +21,18 @@ export function MSProjectResourceUsageView({ project, showOverallocation = false
 
       const taskStart = new Date(task.startDate)
       const taskEnd = new Date(task.endDate)
+      // task.resource stores the role string
+      const resourceRole = task.resource
 
       for (let d = 0; d < daysToShow; d++) {
         const date = new Date(startDate)
         date.setDate(date.getDate() + d)
 
         if (date >= taskStart && date <= taskEnd) {
-          if (!usage.has(task.resource)) {
-            usage.set(task.resource, new Map())
+          if (!usage.has(resourceRole)) {
+            usage.set(resourceRole, new Map())
           }
-          const resourceDays = usage.get(task.resource)!
+          const resourceDays = usage.get(resourceRole)!
           resourceDays.set(d, (resourceDays.get(d) || 0) + 8) // 8 hours per day
         }
       }
@@ -50,11 +52,16 @@ export function MSProjectResourceUsageView({ project, showOverallocation = false
             Resource Name
           </div>
           <div className="divide-y divide-gray-200">
-            {resources.map((resource) => (
-              <div key={resource} className="p-3 border-b border-gray-200">
-                <div className="font-medium text-sm">{resource}</div>
-              </div>
-            ))}
+            {resources.map((resourceRole) => {
+              // Find resource by role to get name
+              const resource = project.resources.find(r => r.role === resourceRole)
+              return (
+                <div key={resourceRole} className="p-3 border-b border-gray-200">
+                  <div className="font-medium text-sm">{resource?.name || resourceRole}</div>
+                  <div className="text-xs text-gray-500">{resourceRole}</div>
+                </div>
+              )
+            })}
           </div>
         </div>
 

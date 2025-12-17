@@ -13,6 +13,7 @@ export function MSProjectResourceSheetView({ project }: MSProjectResourceSheetVi
 
   project.tasks.forEach(task => {
     if (task.resource) {
+      // task.resource stores the role, not the name
       const current = resourceUsage.get(task.resource) || { tasks: 0, totalCost: 0, totalHours: 0 }
       resourceUsage.set(task.resource, {
         tasks: current.tasks + 1,
@@ -45,7 +46,8 @@ export function MSProjectResourceSheetView({ project }: MSProjectResourceSheetVi
         </thead>
         <tbody>
           {resources.map((resource) => {
-            const usage = resourceUsage.get(resource.name) || { tasks: 0, totalCost: 0, totalHours: 0 }
+            // Match by role since tasks store role in resource field
+            const usage = resourceUsage.get(resource.role) || { tasks: 0, totalCost: 0, totalHours: 0 }
             return (
               <tr key={resource.id} className="hover:bg-blue-50">
                 <td className="p-2 border-r border-gray-200 font-medium">{resource.name}</td>
